@@ -29,19 +29,19 @@ pub enum DirectSampleMode {
 
 #[derive(Debug, Clone)]
 pub struct DeviceInfo {
-    index: usize,
-    serial: String,
+    pub index: usize,
+    pub serial: String,
 }
 
 pub fn enumerate() -> Result<Vec<DeviceInfo>> {
-    let mut context = Context::new()?;
-    let devices = context.devices().map(|d| d)?;
+    let context = Context::new()?;
+    let devices = context.devices()?;
 
     let mut devs = Vec::new();
     let mut index = 0;
 
     for found in devices.iter() {
-        let device_desc = found.device_descriptor().map(|d| d)?;
+        let device_desc = found.device_descriptor()?;
         for dev in KNOWN_DEVICES.iter() {
             if device_desc.vendor_id() == dev.vid && device_desc.product_id() == dev.pid {
                 let dev = found.open()?;
@@ -62,11 +62,11 @@ impl RtlSdr {
         let dev = Device::new(index)?;
         let mut sdr = Sdr::new(dev);
         sdr.init()?;
-        Ok(RtlSdr { sdr: sdr })
+        Ok(RtlSdr { sdr })
     }
     pub fn close(&mut self) -> Result<()> {
         // TODO: wait until async is inactive
-        Ok(self.sdr.deinit_baseband()?)
+       self.sdr.deinit_baseband()
     }
     pub fn reset_buffer(&self) -> Result<()> {
         self.sdr.reset_buffer()

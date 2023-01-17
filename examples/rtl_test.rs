@@ -2,11 +2,6 @@ use ctrlc;
 use rtlsdr_rs::{error::Result, RtlSdr};
 use std::sync::atomic::{AtomicBool, Ordering};
 
-enum TestMode {
-    NO_BENCHMARK,
-    TUNER_BENCHMARK,
-    PPM_BENCHMARK,
-}
 const DEFAULT_BUF_LENGTH: usize = (16 * 16384);
 
 const SAMPLE_RATE: u32 = 2_048_000;
