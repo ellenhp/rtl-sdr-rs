@@ -12,6 +12,9 @@ const DEFAULT_BUF_LENGTH: usize = (16 * 16384);
 const SAMPLE_RATE: u32 = 2_048_000;
 
 fn main() -> Result<()> {
+    let devices = rtlsdr_rs::enumerate()?;
+    println!("devices: {devices:?}");
+
     // Create shutdown flag and set it when ctrl-c signal caught
     static shutdown: AtomicBool = AtomicBool::new(false);
     ctrlc::set_handler(|| {

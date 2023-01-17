@@ -19,7 +19,7 @@ impl DeviceHandle {
 
     pub fn open_device<T: UsbContext>(
         context: &mut T,
-        _index: usize,
+        mut index: usize,
     ) -> Result<rusb::DeviceHandle<T>> {
         let devices = context.devices().map(|d| d)?;
 
@@ -27,7 +27,13 @@ impl DeviceHandle {
             let device_desc = found.device_descriptor().map(|d| d)?;
             for dev in KNOWN_DEVICES.iter() {
                 if device_desc.vendor_id() == dev.vid && device_desc.product_id() == dev.pid {
-                    return Ok(found.open()?);
+                    if index == 0 {
+                        let mut dev = found.open()?;
+                        dev.set_auto_detach_kernel_driver(true).ok();
+                        return Ok(dev);
+                    } else {
+                        index -= 1;
+                    }
                 }
             }
         };

@@ -7,8 +7,11 @@ mod rtlsdr;
 mod tuners;
 
 use device::Device;
+use device::KNOWN_DEVICES;
 use error::Result;
 use rtlsdr::RtlSdr as Sdr;
+
+use rusb::{Context, UsbContext};
 
 pub const DEFAULT_BUF_LENGTH: usize = 16 * 16384;
 
@@ -22,6 +25,33 @@ pub enum DirectSampleMode {
     Off,
     On,
     OnSwap, // Swap I and Q ADC, allowing to select between two inputs
+}
+
+#[derive(Debug, Clone)]
+pub struct DeviceInfo {
+    index: usize,
+    serial: String,
+}
+
+pub fn enumerate() -> Result<Vec<DeviceInfo>> {
+    let mut context = Context::new()?;
+    let devices = context.devices().map(|d| d)?;
+
+    let mut devs = Vec::new();
+    let mut index = 0;
+
+    for found in devices.iter() {
+        let device_desc = found.device_descriptor().map(|d| d)?;
+        for dev in KNOWN_DEVICES.iter() {
+            if device_desc.vendor_id() == dev.vid && device_desc.product_id() == dev.pid {
+                let dev = found.open()?;
+                let serial = dev.read_serial_number_string_ascii(&device_desc)?;
+                devs.push(DeviceInfo { index, serial });
+                index += 1;
+            }
+        }
+    }
+    Ok(devs)
 }
 
 pub struct RtlSdr {
