@@ -896,7 +896,7 @@ impl R820T {
                 let mut data: [u8; 5] = [0; 5];
                 self.read_reg(handle, 0x00, &mut data, 5)?;
                 self.fil_cal_code = data[4] & 0x0f;
-                if self.fil_cal_code & self.fil_cal_code != 0x0f {
+                if self.fil_cal_code != 0x0f {
                     break;
                 }
                 // Narrowest
@@ -961,13 +961,13 @@ impl R820T {
             }
 
             let val = data[2] & 0x3f;
-            if (self.xtal == 16_000_000 && (val > 29 || val < 23)) || val != 0x3f {
+            if (self.xtal == 16_000_000 && !(23..=29).contains(&val)) || val != 0x3f {
                 return Ok(*cap_val);
             }
         }
-        Err(RtlsdrErr(format!(
-            "Unable to find good xtal capacitor value!"
-        )))
+        Err(RtlsdrErr(
+            "Unable to find good xtal capacitor value!".to_string(),
+        ))
     }
 
     /// Write register with bit-masked data
@@ -976,7 +976,7 @@ impl R820T {
         // Compute the desired register value: (rc & !mask) gets the unmasked bits and leaves the masked as 0,
         // and (val & mask) gets just the masked bits we want to set. Or together to get the desired register.
         let applied: u8 = (rc & !bit_mask) | (val & bit_mask);
-        Ok(self.write_regs(handle, reg, &[applied])?)
+        self.write_regs(handle, reg, &[applied])
     }
 
     /// Read register data from local cache
@@ -1013,7 +1013,7 @@ impl R820T {
             val_index += size;
             reg_index += size;
             len -= size;
-            if len <= 0 {
+            if len == 0 {
                 break;
             }
         }
@@ -1026,8 +1026,8 @@ impl R820T {
         handle.i2c_write(R820T_I2C_ADDR, &[reg as u8])?;
         handle.i2c_read(R820T_I2C_ADDR, buf, len)?;
         // Need to reverse each byte...for some reason?
-        for i in 0..buf.len() {
-            buf[i] = bit_reverse(buf[i]);
+        for b in buf {
+            *b = bit_reverse(*b);
         }
         Ok(())
     }
@@ -1036,7 +1036,7 @@ impl R820T {
     /// Will panic if reg < RW_REG_START or (reg + len) > NUM_CACHE_REGS + 1
     fn reg_cache_store(&mut self, mut reg: usize, val: &[u8]) {
         assert!(reg >= RW_REG_START);
-        reg = reg - RW_REG_START;
+        reg -= RW_REG_START;
         assert!(reg + val.len() <= NUM_CACHE_REGS);
         self.regs[reg..reg + val.len()].copy_from_slice(val);
     }
