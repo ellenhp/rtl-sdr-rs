@@ -219,12 +219,11 @@ impl RtlSdr {
         let mut inner = self.i.lock().unwrap();
         // Check if rate is supported by the resampler
         if rate <= 225_000 || rate > 3_200_000 || (rate > 300000 && rate <= 900000) {
-            return Err(RtlsdrErr(format!("Invalid sample rate: {} Hz", rate)));
+            return Err(RtlsdrErr(format!("Invalid sample rate: {rate} Hz")));
         }
 
         // Compute exact sample rate
-        let rsamp_ratio =
-            ((inner.xtal as u128 * 2_u128.pow(22) / rate as u128) & 0x0ffffffc) as u128;
+        let rsamp_ratio = (inner.xtal as u128 * 2_u128.pow(22) / rate as u128) & 0x0ffffffc;
         info!(
             "set_sample_rate: rate: {}, xtal: {}, rsamp_ratio: {}",
             rate, inner.xtal, rsamp_ratio
@@ -365,7 +364,7 @@ impl RtlSdr {
     }
 
     pub fn set_bias_tee(&self, on: bool) -> Result<()> {
-        Ok(self.set_gpio(0, on)?)
+        self.set_gpio(0, on)
     }
 
     #[allow(dead_code)]
@@ -382,10 +381,9 @@ impl RtlSdr {
     #[allow(dead_code)]
     pub fn set_xtal_freq(&self, rtl_freq: u32, tuner_freq: u32) -> Result<()> {
         let mut inner = self.i.lock().unwrap();
-        if rtl_freq > 0 && (rtl_freq < MIN_RTL_XTAL_FREQ || rtl_freq > MAX_RTL_XTAL_FREQ) {
+        if rtl_freq > 0 && !(MIN_RTL_XTAL_FREQ..=MAX_RTL_XTAL_FREQ).contains(&rtl_freq) {
             return Err(RtlsdrErr(format!(
-                "set_xtal_freq error: rtl_freq {} out of bounds",
-                rtl_freq
+                "set_xtal_freq error: rtl_freq {rtl_freq} out of bounds"
             )));
         }
         if rtl_freq > 0 && inner.xtal != rtl_freq {
@@ -485,7 +483,7 @@ impl RtlSdr {
     }
 
     fn set_sample_freq_correction(&self, ppm: i32) -> Result<()> {
-        let offs = (ppm * (-1) * 2_i32.pow(24) / 1_000_000) as i16;
+        let offs = (-ppm * 2_i32.pow(24) / 1_000_000) as i16;
         self.handle
             .demod_write_reg(1, 0x3f, (offs & 0xff) as u16, 1)?;
         self.handle
@@ -500,7 +498,7 @@ impl RtlSdr {
             on = true;
         }
         self.set_gpio_output(gpio_pin)?;
-        Ok(self.set_gpio_bit(gpio_pin, on)?)
+        self.set_gpio_bit(gpio_pin, on)
     }
 
     fn set_gpio_bit(&self, mut gpio: u8, val: bool) -> Result<()> {
@@ -531,7 +529,7 @@ impl RtlSdr {
         };
         self.handle
             .demod_write_reg(1, 0x01, val, 1)
-            .and_then(|_| return Ok(()))
+            .map(|_| ())
     }
 
     pub fn set_fir(&self, fir: &[i32; FIR_LEN]) -> Result<()> {
@@ -540,8 +538,8 @@ impl RtlSdr {
         // First 8 values are i8
         for i in 0..8 {
             let val = fir[i];
-            if val < -128 || val > 127 {
-                panic!("i8 FIR coefficient out of bounds! {}", val);
+            if !(-128..=127).contains(&val) {
+                panic!("i8 FIR coefficient out of bounds! {val}");
             }
             tmp[i] = val as u8;
         }
@@ -552,9 +550,9 @@ impl RtlSdr {
         for i in (0..8).step_by(2) {
             let val0 = fir[8 + i];
             let val1 = fir[8 + i + 1];
-            if val0 < -2048 || val0 > 2047 {
+            if !(-2048..=2047).contains(&val0) {
                 panic!("i12 FIR coefficient out of bounds: {val0}")
-            } else if val1 < -2048 || val1 > 2047 {
+            } else if !(-2048..=2047).contains(&val1) {
                 panic!("i12 FIR coefficient out of bounds: {val1}")
             }
             tmp[8 + i * 3 / 2] = (val0 >> 4) as u8;
@@ -562,9 +560,10 @@ impl RtlSdr {
             tmp[8 + i * 3 / 2 + 2] = val1 as u8;
         }
 
-        for i in 0..TMP_LEN {
+        for (i, t) in tmp.iter().enumerate().take(TMP_LEN) {
+        // for i in 0..TMP_LEN {
             self.handle
-                .demod_write_reg(1, 0x1c + i as u16, tmp[i] as u16, 1)?;
+                .demod_write_reg(1, 0x1c + i as u16, *t as u16, 1)?;
         }
         Ok(())
     }

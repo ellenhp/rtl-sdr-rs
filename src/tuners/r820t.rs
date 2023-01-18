@@ -613,10 +613,10 @@ impl R820T {
         // TODO: if chip is R828D set vco_power_ref = 1
         let vco_power_ref = 2;
         let vco_fine_tune = (data[4] & 0x30) >> 4;
-        if vco_fine_tune > vco_power_ref {
-            div_num -= 1;
-        } else if vco_fine_tune < vco_power_ref {
-            div_num += 1;
+        match vco_fine_tune.cmp(&vco_power_ref) {
+            std::cmp::Ordering::Greater => div_num -= 1,
+            std::cmp::Ordering::Less => div_num += 1,
+            _ => (),
         }
         self.write_reg_mask(handle, 0x10, div_num << 5, 0xe0)?;
 
