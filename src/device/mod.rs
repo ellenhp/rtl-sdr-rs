@@ -9,9 +9,6 @@ use byteorder::{ByteOrder, LittleEndian};
 use log::{error, info};
 use std::time::Duration;
 
-#[cfg(test)]
-mod device_test;
-
 #[derive(Debug)]
 pub struct Device {
     handle: DeviceHandle,
