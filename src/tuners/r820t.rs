@@ -247,9 +247,9 @@ const FREQ_RANGES: [FreqRange; 21] = [
 
 #[allow(dead_code)]
 enum TunerType {
-    TunerRadio,
-    TunerAnalogTv,
-    TunerDigitalTv,
+    Radio,
+    AnalogTv,
+    DigitalTv,
 }
 
 #[derive(Debug)]
@@ -309,7 +309,7 @@ pub const TUNER_INFO: TunerInfo = TunerInfo {
 
 impl R820T {
     pub fn new(_handle: &mut Device) -> R820T {
-        let tuner = R820T {
+        R820T {
             info: TUNER_INFO,
             regs: REG_INIT,
             freq: 0,
@@ -320,8 +320,7 @@ impl R820T {
             init_done: false,
             use_predetect: false,
             fil_cal_code: 0,
-        };
-        tuner
+        }
     }
 }
 
@@ -337,11 +336,11 @@ impl Tuner for R820T {
         // Initialize registers
         self.write_regs(handle, 0x05, &REG_INIT)?;
 
-        self.set_tv_standard(handle, 3, TunerType::TunerDigitalTv)?;
+        self.set_tv_standard(handle, 3, TunerType::DigitalTv)?;
         self.sysfreq_sel(
             handle,
             0,
-            TunerType::TunerDigitalTv,
+            TunerType::DigitalTv,
             DeliverySystem::SysDvbt,
         )?;
         self.init_done = true;
@@ -561,7 +560,7 @@ impl R820T {
         let val = match self.xtal_cap_sel {
             XtalCapValue::XtalLowCap30p | XtalCapValue::XtalLowCap20p => range.xtal_cap20p | 0x08,
             XtalCapValue::XtalLowCap10p => range.xtal_cap10p | 0x08,
-            XtalCapValue::XtalHighCap0p => range.xtal_cap0p | 0x00,
+            XtalCapValue::XtalHighCap0p => range.xtal_cap0p,
             XtalCapValue::XtalLowCap0p => range.xtal_cap0p | 0x08,
         };
         self.write_reg_mask(handle, 0x10, val, 0x0b)?;
@@ -601,12 +600,12 @@ impl R820T {
             if ((freq_khz * mix_div as u32) >= vco_min) && ((freq_khz * mix_div as u32) < vco_max) {
                 let mut div_buf = mix_div;
                 while div_buf > 2 {
-                    div_buf = div_buf >> 1;
+                    div_buf >>= 1;
                     div_num += 1;
                 }
                 break;
             }
-            mix_div = mix_div << 1;
+            mix_div <<= 1;
         }
 
         let mut data: [u8; 5] = [0; 5];
@@ -615,9 +614,9 @@ impl R820T {
         let vco_power_ref = 2;
         let vco_fine_tune = (data[4] & 0x30) >> 4;
         if vco_fine_tune > vco_power_ref {
-            div_num = div_num - 1;
+            div_num -= 1;
         } else if vco_fine_tune < vco_power_ref {
-            div_num = div_num + 1;
+            div_num += 1;
         }
         self.write_reg_mask(handle, 0x10, div_num << 5, 0xe0)?;
 
@@ -630,8 +629,7 @@ impl R820T {
 
         if nint > ((128 / vco_power_ref) - 1) {
             return Err(RtlsdrErr(format!(
-                "[R82xx] No valid PLL values for {} Hz!",
-                freq
+                "[R82xx] No valid PLL values for {freq} Hz!"
             )));
         }
         // Nint = 4 * Ni2c + Si2c + 13
@@ -660,8 +658,8 @@ impl R820T {
         let mut n_sdm = 2;
         while vco_fra > 1 {
             if vco_fra > (2 * pll_ref_khz / n_sdm) {
-                sdm = sdm + 32768 / (n_sdm / 2);
-                vco_fra = vco_fra - 2 * pll_ref_khz / n_sdm;
+                sdm += 32768 / (n_sdm / 2);
+                vco_fra -= 2 * pll_ref_khz / n_sdm;
                 if n_sdm >= 0x8000 {
                     break;
                 }
@@ -800,7 +798,7 @@ impl R820T {
         self.write_reg_mask(handle, 0x0a, filter_cur, 0x60)?;
 
         // Set LNA
-        if !matches!(tuner_type, TunerType::TunerAnalogTv) {
+        if !matches!(tuner_type, TunerType::AnalogTv) {
             // LNA TOP: lowest
             self.write_reg_mask(handle, 0x1d, 0, 0x38)?;
             // 0: normal mode
@@ -868,7 +866,7 @@ impl R820T {
         self.write_reg_mask(handle, 0x13, VER_NUM, 0x3f)?;
 
         // for LT Gain test
-        if !matches!(tuner_type, TunerType::TunerAnalogTv) {
+        if !matches!(tuner_type, TunerType::AnalogTv) {
             self.write_reg_mask(handle, 0x1d, 0x00, 0x38)?;
         }
         self.int_freq = if_khz * 1000;
@@ -939,7 +937,12 @@ impl R820T {
         let mut data: [u8; 3] = [0; 3];
 
         // Initialize register cache
-        for (i, r) in REG_INIT.iter().enumerate().take(NUM_REGS).skip(RW_REG_START) {
+        for (i, r) in REG_INIT
+            .iter()
+            .enumerate()
+            .take(NUM_REGS)
+            .skip(RW_REG_START)
+        {
             self.regs[i] = *r;
         }
 

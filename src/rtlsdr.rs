@@ -553,9 +553,9 @@ impl RtlSdr {
             let val0 = fir[8 + i];
             let val1 = fir[8 + i + 1];
             if val0 < -2048 || val0 > 2047 {
-                panic!("i12 FIR coefficient out of bounds: {}", val0)
+                panic!("i12 FIR coefficient out of bounds: {val0}")
             } else if val1 < -2048 || val1 > 2047 {
-                panic!("i12 FIR coefficient out of bounds: {}", val1)
+                panic!("i12 FIR coefficient out of bounds: {val1}")
             }
             tmp[8 + i * 3 / 2] = (val0 >> 4) as u8;
             tmp[8 + i * 3 / 2 + 1] = ((val0 << 4) | ((val1 >> 8) & 0x0f)) as u8;
