@@ -1,9 +1,6 @@
 pub mod constants;
 pub use constants::*;
 pub mod device_handle;
-#[cfg(test)]
-mod mock_device_handle;
-
 use device_handle::DeviceHandle;
 
 use crate::error::Result;

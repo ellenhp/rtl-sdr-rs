@@ -1,6 +1,5 @@
 use mockall::predicate::{self, eq};
 
-use crate::device::mock_device_handle::MockDeviceHandle;
 use crate::device::{Device, EEPROM_SIZE};
 
 use super::{BLOCK_SYS, CTRL_IN, CTRL_OUT, CTRL_TIMEOUT, GPO};
