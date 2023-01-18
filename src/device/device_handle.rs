@@ -14,7 +14,7 @@ impl DeviceHandle {
     pub fn open(index: usize) -> Result<Self> {
         let mut context = Context::new()?;
         let handle = DeviceHandle::open_device(&mut context, index)?;
-        Ok(DeviceHandle { handle: handle })
+        Ok(DeviceHandle { handle })
     }
 
     pub fn open_device<T: UsbContext>(

@@ -4,10 +4,7 @@ pub mod device_handle;
 #[cfg(test)]
 mod mock_device_handle;
 
-#[cfg(not(test))]
 use device_handle::DeviceHandle;
-#[cfg(test)]
-use mock_device_handle::MockDeviceHandle as DeviceHandle;
 
 use crate::error::Result;
 use byteorder::{ByteOrder, LittleEndian};
