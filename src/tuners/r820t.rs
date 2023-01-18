@@ -666,7 +666,7 @@ impl R820T {
                     break;
                 }
             }
-            n_sdm = n_sdm << 1;
+            n_sdm <<= 1;
         }
         self.write_regs(handle, 0x16, &[(sdm >> 8) as u8])?;
         self.write_regs(handle, 0x15, &[(sdm & 0xff) as u8])?;
@@ -939,8 +939,8 @@ impl R820T {
         let mut data: [u8; 3] = [0; 3];
 
         // Initialize register cache
-        for i in RW_REG_START..NUM_REGS {
-            self.regs[i] = REG_INIT[i];
+        for (i, r) in REG_INIT.iter().enumerate().take(NUM_REGS).skip(RW_REG_START) {
+            self.regs[i] = *r;
         }
 
         // cap 30pF & Drive Low

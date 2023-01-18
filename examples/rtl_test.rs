@@ -1,8 +1,8 @@
-use ctrlc;
+
 use rtlsdr_rs::{error::Result, RtlSdr};
 use std::sync::atomic::{AtomicBool, Ordering};
 
-const DEFAULT_BUF_LENGTH: usize = (16 * 16384);
+const DEFAULT_BUF_LENGTH: usize = 16 * 16384;
 
 const SAMPLE_RATE: u32 = 2_048_000;
 
@@ -50,11 +50,11 @@ fn main() -> Result<()> {
         }
         let n = sdr.read_sync(&mut buf);
         if n.is_err() {
-            println!("Read error: {:#?}", n);
+            println!("Read error: {n:#?}");
         } else {
             let n = n.unwrap();
             if n < DEFAULT_BUF_LENGTH {
-                println!("Short read ({:#?}), samples lost, exiting!", n);
+                println!("Short read ({n:#?}), samples lost, exiting!");
                 break;
             }
         }

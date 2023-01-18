@@ -9,7 +9,7 @@
 //! cargo run --example simple_fm | play -r 32k -t raw -e s -b 16 -c 1 -V1 -
 
 use core::alloc::Layout;
-use ctrlc;
+
 use log::info;
 use num_complex::Complex;
 use rtlsdr_rs::{error::Result, RtlSdr, DEFAULT_BUF_LENGTH};
@@ -72,7 +72,7 @@ fn main() {
                 break;
             }
             // Read chunk of file  data into buf
-            let n = f.read(&mut buf[..]).expect("failed to read");
+            let _n = f.read(&mut buf[..]).expect("failed to read");
             // Demodulate data from file
             let result = demod.demodulate(buf.to_vec());
             // Output resulting audio data to stdout
@@ -179,15 +179,15 @@ fn optimal_settings(freq: u32, rate: u32) -> (RadioConfig, DemodConfig) {
     }
     (
         RadioConfig {
-            capture_freq: capture_freq,
-            capture_rate: capture_rate,
+            capture_freq,
+            capture_rate,
         },
         DemodConfig {
             rate_in: SAMPLE_RATE,
             rate_out: SAMPLE_RATE,
             rate_resample: RATE_RESAMPLE,
-            downsample: downsample,
-            output_scale: output_scale,
+            downsample,
+            output_scale,
         },
     )
 }
@@ -221,7 +221,7 @@ struct Demod {
 impl Demod {
     fn new(config: DemodConfig) -> Self {
         Demod {
-            config: config,
+            config,
             prev_index: 0,
             now_lpr: 0,
             prev_lpr_index: 0,
@@ -243,8 +243,8 @@ impl Demod {
         let demodulated = self.fm_demod(lowpassed);
 
         // Resample and return result
-        let output = self.low_pass_real(demodulated);
-        output
+        
+        self.low_pass_real(demodulated)
     }
 
     /// Performs a 90-degree rotation in the complex plane on a vector of bytes
@@ -338,7 +338,7 @@ impl Demod {
         if y < 0 {
             return -angle;
         }
-        return angle;
+        angle
     }
 
     /// Applies a low-pass filter to a vector of real-valued data
