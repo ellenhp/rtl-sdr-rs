@@ -22,7 +22,7 @@ impl Device {
     }
 
     pub fn claim_interface(&mut self, iface: u8) -> Result<()> {
-        Ok(self.handle.claim_interface(iface)?)
+        self.handle.claim_interface(iface)
     }
 
     pub fn test_write(&mut self) -> Result<()> {

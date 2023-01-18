@@ -17,7 +17,7 @@ const MIN_RTL_XTAL_FREQ: u32 = DEF_RTL_XTAL_FREQ - 1000;
 const MAX_RTL_XTAL_FREQ: u32 = DEF_RTL_XTAL_FREQ + 1000;
 
 pub(crate) const FIR_LEN: usize = 16;
-const DEFAULT_FIR: &'static [i32; FIR_LEN] = &[
+const DEFAULT_FIR: &[i32; FIR_LEN] = &[
     -54, -36, -41, -40, -32, -14, 14, 53, // i8
     101, 156, 215, 273, 327, 372, 404, 421, // i12
 ];

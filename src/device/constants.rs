@@ -7,7 +7,7 @@ pub struct UsbDeviceSignature {
     pub pid: u16,
     pub description: &'static str,
 }
-pub const KNOWN_DEVICES: &'static [UsbDeviceSignature; 42] = &[
+pub const KNOWN_DEVICES: &[UsbDeviceSignature; 42] = &[
     UsbDeviceSignature {
         vid: 0x0bda,
         pid: 0x2832,

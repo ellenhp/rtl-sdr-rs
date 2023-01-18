@@ -21,10 +21,10 @@ impl DeviceHandle {
         context: &mut T,
         mut index: usize,
     ) -> Result<rusb::DeviceHandle<T>> {
-        let devices = context.devices().map(|d| d)?;
+        let devices = context.devices()?;
 
-        let _device = for found in devices.iter() {
-            let device_desc = found.device_descriptor().map(|d| d)?;
+        for found in devices.iter() {
+            let device_desc = found.device_descriptor()?;
             for dev in KNOWN_DEVICES.iter() {
                 if device_desc.vendor_id() == dev.vid && device_desc.product_id() == dev.pid {
                     if index == 0 {
@@ -37,7 +37,7 @@ impl DeviceHandle {
                 }
             }
         };
-        Err(RtlsdrErr(format!("No device found")))
+        Err(RtlsdrErr("No device found".to_string()))
     }
 
     pub fn claim_interface(&mut self, iface: u8) -> Result<()> {
