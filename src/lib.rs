@@ -15,7 +15,7 @@ use rusb::{Context, UsbContext};
 
 pub const DEFAULT_BUF_LENGTH: usize = 16 * 16384;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TunerGain {
     Auto,
     Manual(i32),
