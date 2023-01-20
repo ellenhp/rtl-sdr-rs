@@ -20,7 +20,7 @@ pub enum TunerGain {
     Auto,
     Manual(i32),
 }
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum DirectSampleMode {
     Off,
     On,

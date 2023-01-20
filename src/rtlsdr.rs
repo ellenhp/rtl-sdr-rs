@@ -132,6 +132,9 @@ impl RtlSdr {
         // Finished Init
         self.set_i2c_repeater(false)?;
         info!("Init complete");
+
+        self.set_sample_rate(2_000_000)?;
+        self.set_center_freq(100_000)?;
         Ok(())
     }
 
@@ -253,7 +256,8 @@ impl RtlSdr {
         self.set_i2c_repeater(false)?;
         if inner.deref().borrow().tuner.get_info()?.id == TUNER_ID {
             self.set_if_freq(inner.deref().borrow().tuner.get_if_freq()?)?;
-            self.set_center_freq(inner.deref().borrow().freq)?;
+            let freq = inner.deref().borrow().freq;
+            self.set_center_freq(freq)?;
         }
 
         let mut tmp: u16 = (rsamp_ratio >> 16) as u16;
