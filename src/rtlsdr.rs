@@ -8,7 +8,11 @@ use crate::error::RtlsdrError::RtlsdrErr;
 use crate::tuners::r820t::{R820T, R82XX_IF_FREQ, TUNER_ID};
 use crate::tuners::{NoTuner, Tuner, KNOWN_TUNERS};
 use log::{error, info};
-use std::sync::Mutex;
+use parking_lot::ReentrantMutex;
+use std::cell::RefCell;
+use std::ops::Deref;
+use std::borrow::Borrow;
+use std::borrow::BorrowMut;
 
 const INTERFACE_ID: u8 = 0;
 
@@ -25,7 +29,7 @@ const DEFAULT_FIR: &[i32; FIR_LEN] = &[
 #[derive(Debug)]
 pub struct RtlSdr {
     handle: Device,
-    i: Mutex<Inner>,
+    i: ReentrantMutex<RefCell<Inner>>,
 }
 
 #[derive(Debug)]
