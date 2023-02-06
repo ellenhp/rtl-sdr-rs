@@ -36,7 +36,7 @@ impl DeviceHandle {
                     }
                 }
             }
-        };
+        }
         Err(RtlsdrErr("No device found".to_string()))
     }
 

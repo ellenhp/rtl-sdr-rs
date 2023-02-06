@@ -1,4 +1,3 @@
-
 use rtlsdr_rs::{error::Result, RtlSdr};
 use std::sync::atomic::{AtomicBool, Ordering};
 

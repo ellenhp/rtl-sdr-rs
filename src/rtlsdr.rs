@@ -148,7 +148,11 @@ impl RtlSdr {
     pub fn set_tuner_gain(&self, gain: TunerGain) -> Result<()> {
         let inner = self.i.lock();
         self.set_i2c_repeater(true)?;
-        inner.deref().borrow_mut().tuner.set_gain(&self.handle, gain)?;
+        inner
+            .deref()
+            .borrow_mut()
+            .tuner
+            .set_gain(&self.handle, gain)?;
         self.set_i2c_repeater(false)?;
         Ok(())
     }
@@ -169,13 +173,20 @@ impl RtlSdr {
 
     pub fn set_center_freq(&self, freq: u32) -> Result<()> {
         let inner = self.i.lock();
-        if !matches!(inner.deref().borrow().direct_sampling, DirectSampleMode::Off) {
+        if !matches!(
+            inner.deref().borrow().direct_sampling,
+            DirectSampleMode::Off
+        ) {
             self.set_if_freq(freq)?;
         } else {
             self.set_i2c_repeater(true)?;
             // TODO: figure out offset_freq, currently never set
             let lo = inner.deref().borrow().offset_freq;
-            inner.deref().borrow_mut().tuner.set_freq(&self.handle, freq - lo)?;
+            inner
+                .deref()
+                .borrow_mut()
+                .tuner
+                .set_freq(&self.handle, freq - lo)?;
             self.set_i2c_repeater(false)?;
         }
         inner.deref().borrow_mut().freq = freq;
@@ -200,7 +211,7 @@ impl RtlSdr {
 
     pub fn get_freq_correction(&self) -> i32 {
         let inner = self.i.lock();
-        let r= inner.deref().borrow().corr;
+        let r = inner.deref().borrow().corr;
         r
     }
 
@@ -213,7 +224,11 @@ impl RtlSdr {
         self.set_sample_freq_correction(ppm)?;
 
         // Read corrected clock value into tuner
-        inner.deref().borrow_mut().tuner.set_xtal_freq(self.get_tuner_xtal_freq())?;
+        inner
+            .deref()
+            .borrow_mut()
+            .tuner
+            .set_xtal_freq(self.get_tuner_xtal_freq())?;
 
         // Retune to apply new correction value
         self.set_center_freq(inner.deref().borrow().freq)?;
@@ -234,14 +249,18 @@ impl RtlSdr {
         }
 
         // Compute exact sample rate
-        let rsamp_ratio = (inner.deref().borrow().xtal as u128 * 2_u128.pow(22) / rate as u128) & 0x0ffffffc;
+        let rsamp_ratio =
+            (inner.deref().borrow().xtal as u128 * 2_u128.pow(22) / rate as u128) & 0x0ffffffc;
         info!(
             "set_sample_rate: rate: {}, xtal: {}, rsamp_ratio: {}",
-            rate, inner.deref().borrow().xtal, rsamp_ratio
+            rate,
+            inner.deref().borrow().xtal,
+            rsamp_ratio
         );
         let real_resamp_ratio = rsamp_ratio | ((rsamp_ratio & 0x08000000) << 1);
         info!("real_resamp_ratio: {}", real_resamp_ratio);
-        let real_rate = (inner.deref().borrow_mut().xtal as u128 * 2_u128.pow(22)) as f64 / real_resamp_ratio as f64;
+        let real_rate = (inner.deref().borrow_mut().xtal as u128 * 2_u128.pow(22)) as f64
+            / real_resamp_ratio as f64;
         if rate as f64 != real_rate {
             info!("Exact sample rate is {} Hz", real_rate);
         }
@@ -250,9 +269,17 @@ impl RtlSdr {
 
         // Configure tuner
         self.set_i2c_repeater(true)?;
-        let val = if inner.deref().borrow().bw > 0 { inner.deref().borrow().bw } else { inner.deref().borrow().rate };
+        let val = if inner.deref().borrow().bw > 0 {
+            inner.deref().borrow().bw
+        } else {
+            inner.deref().borrow().rate
+        };
         let r = inner.deref().borrow().rate;
-        inner.deref().borrow_mut().tuner.set_bandwidth(&self.handle, val, r)?;
+        inner
+            .deref()
+            .borrow_mut()
+            .tuner
+            .set_bandwidth(&self.handle, val, r)?;
         self.set_i2c_repeater(false)?;
         if inner.deref().borrow().tuner.get_info()?.id == TUNER_ID {
             self.set_if_freq(inner.deref().borrow().tuner.get_if_freq()?)?;
@@ -280,10 +307,18 @@ impl RtlSdr {
 
     pub fn set_tuner_bandwidth(&self, mut bw: u32) -> Result<()> {
         let inner = self.i.lock();
-        bw = if bw > 0 { bw } else { inner.deref().borrow().rate };
+        bw = if bw > 0 {
+            bw
+        } else {
+            inner.deref().borrow().rate
+        };
         self.set_i2c_repeater(true)?;
         let r = inner.deref().borrow().rate;
-        inner.deref().borrow_mut().tuner.set_bandwidth(&self.handle, bw, r)?;
+        inner
+            .deref()
+            .borrow_mut()
+            .tuner
+            .set_bandwidth(&self.handle, bw, r)?;
         self.set_i2c_repeater(false)?;
         if inner.deref().borrow().tuner.get_info()?.id == TUNER_ID {
             self.set_if_freq(inner.deref().borrow().tuner.get_if_freq()?)?;
@@ -382,13 +417,15 @@ impl RtlSdr {
     #[allow(dead_code)]
     pub fn get_xtal_freq(&self) -> u32 {
         let inner = self.i.lock();
-        let r = (inner.deref().borrow().xtal as f32 * (1.0 + inner.deref().borrow().ppm_correction as f32 / 1e6)) as u32;
+        let r = (inner.deref().borrow().xtal as f32
+            * (1.0 + inner.deref().borrow().ppm_correction as f32 / 1e6)) as u32;
         r
     }
 
     pub fn get_tuner_xtal_freq(&self) -> u32 {
         let inner = self.i.lock();
-        let r = (inner.deref().borrow().tuner_xtal as f32 * (1.0 + inner.deref().borrow().ppm_correction as f32 / 1e6)) as u32;
+        let r = (inner.deref().borrow().tuner_xtal as f32
+            * (1.0 + inner.deref().borrow().ppm_correction as f32 / 1e6)) as u32;
         r
     }
 
@@ -417,7 +454,11 @@ impl RtlSdr {
             }
 
             // Read corrected clock value into tuner
-            inner.deref().borrow_mut().tuner.set_xtal_freq(self.get_tuner_xtal_freq())?;
+            inner
+                .deref()
+                .borrow_mut()
+                .tuner
+                .set_xtal_freq(self.get_tuner_xtal_freq())?;
 
             // Update xtal-dependent settings
             if inner.deref().borrow().freq != 0 {
@@ -541,9 +582,7 @@ impl RtlSdr {
             true => 0x18,
             false => 0x10,
         };
-        self.handle
-            .demod_write_reg(1, 0x01, val, 1)
-            .map(|_| ())
+        self.handle.demod_write_reg(1, 0x01, val, 1).map(|_| ())
     }
 
     pub fn set_fir(&self, fir: &[i32; FIR_LEN]) -> Result<()> {
@@ -575,7 +614,7 @@ impl RtlSdr {
         }
 
         for (i, t) in tmp.iter().enumerate().take(TMP_LEN) {
-        // for i in 0..TMP_LEN {
+            // for i in 0..TMP_LEN {
             self.handle
                 .demod_write_reg(1, 0x1c + i as u16, *t as u16, 1)?;
         }

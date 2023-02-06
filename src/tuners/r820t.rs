@@ -337,12 +337,7 @@ impl Tuner for R820T {
         self.write_regs(handle, 0x05, &REG_INIT)?;
 
         self.set_tv_standard(handle, 3, TunerType::DigitalTv)?;
-        self.sysfreq_sel(
-            handle,
-            0,
-            TunerType::DigitalTv,
-            DeliverySystem::SysDvbt,
-        )?;
+        self.sysfreq_sel(handle, 0, TunerType::DigitalTv, DeliverySystem::SysDvbt)?;
         self.init_done = true;
         Ok(())
     }

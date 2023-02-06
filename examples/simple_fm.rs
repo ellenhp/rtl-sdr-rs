@@ -243,7 +243,7 @@ impl Demod {
         let demodulated = self.fm_demod(lowpassed);
 
         // Resample and return result
-        
+
         self.low_pass_real(demodulated)
     }
 
