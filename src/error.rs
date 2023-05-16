@@ -10,4 +10,3 @@ pub enum RtlsdrError {
 
 /// A result of a function that may return a `Error`.
 pub type Result<T> = std::result::Result<T, RtlsdrError>;
-
