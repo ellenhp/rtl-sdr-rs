@@ -12,7 +12,7 @@ use core::alloc::Layout;
 
 use log::info;
 use num_complex::Complex;
-use rtlsdr_rs::{error::Result, RtlSdr, DEFAULT_BUF_LENGTH};
+use seify_rtlsdr::{error::Result, RtlSdr, DEFAULT_BUF_LENGTH};
 use std::alloc::alloc_zeroed;
 use std::f64::consts::PI;
 use std::io::Write;
@@ -21,7 +21,7 @@ use std::sync::mpsc::{self, Receiver, Sender};
 use std::thread;
 
 // Radio and demodulation config
-const FREQUENCY: u32 = 91_100_000; // Frequency in Hz, 91.1MHz WREK Atlanta
+const FREQUENCY: u32 = 98_350_000; // Frequency in Hz, 91.1MHz WREK Atlanta
 const SAMPLE_RATE: u32 = 170_000; // Demodulation sample rate, 170kHz
 const RATE_RESAMPLE: u32 = 32_000; // Output sample rate, 32kHz
 
@@ -195,7 +195,7 @@ fn optimal_settings(freq: u32, rate: u32) -> (RadioConfig, DemodConfig) {
 /// Configure the SDR device for a given receive frequency and sample rate.
 fn config_sdr(sdr: &mut RtlSdr, freq: u32, rate: u32) -> Result<()> {
     // Use auto-gain
-    sdr.set_tuner_gain(rtlsdr_rs::TunerGain::Auto)?;
+    sdr.set_tuner_gain(seify_rtlsdr::TunerGain::Auto)?;
     // Disable bias-tee
     sdr.set_bias_tee(false)?;
     // Reset the endpoint before we try to read from it (mandatory)
