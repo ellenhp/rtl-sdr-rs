@@ -133,8 +133,6 @@ impl RtlSdr {
         self.set_i2c_repeater(false)?;
         info!("Init complete");
 
-        self.set_sample_rate(2_000_000)?;
-        self.set_center_freq(100_000)?;
         Ok(())
     }
 
@@ -320,9 +318,12 @@ impl RtlSdr {
             .tuner
             .set_bandwidth(&self.handle, bw, r)?;
         self.set_i2c_repeater(false)?;
-        if inner.deref().borrow().tuner.get_info()?.id == TUNER_ID {
-            self.set_if_freq(inner.deref().borrow().tuner.get_if_freq()?)?;
-            self.set_center_freq(inner.deref().borrow().freq)?;
+        let is_tuner = inner.deref().borrow().tuner.get_info()?.id == TUNER_ID;
+        if is_tuner {
+            let if_freq = inner.deref().borrow().tuner.get_if_freq()?;
+            self.set_if_freq(if_freq)?;
+            let freq = inner.deref().borrow().freq;
+            self.set_center_freq(freq)?;
         }
         inner.deref().borrow_mut().bw = bw;
         Ok(())
@@ -492,7 +493,7 @@ impl RtlSdr {
         self.handle.demod_write_reg(1, 0x16, 0x00, 2)?;
 
         // info!("Clear DDC shift and IF registers");
-        for i in 0..5 {
+        for i in 0..6 {
             self.handle.demod_write_reg(1, 0x16 + i, 0x00, 1)?;
         }
         self.set_fir(DEFAULT_FIR)?;
