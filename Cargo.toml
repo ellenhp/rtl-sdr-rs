@@ -1,6 +1,6 @@
 [package]
 name = "seify-rtlsdr"
-version = "0.0.2"
+version = "0.0.3"
 description = "Rusty RTL-SDR Driver"
 documentation = "https://docs.rs/seify-rtlsdr/"
 edition = "2021"
